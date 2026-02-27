@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://brtvpcdbxd7n"]
+
+[ext_resource type="Texture2D" uid="uid://5j0gvxe8e20n" path="res://Assets/placeholder/ability_hud.png" id="1_e0onf"]
+[ext_resource type="Texture2D" uid="uid://csggmp1x62tsm" path="res://Assets/placeholder/attack_hud.png" id="1_fccik"]
+
+[node name="HUD" type="AspectRatioContainer" unique_id=598983789]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=619792223]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer" unique_id=2073935110]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="CenterContainer/HBoxContainer" unique_id=1765862264]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("1_fccik")
+
+[node name="TextureRect2" type="TextureRect" parent="CenterContainer/HBoxContainer" unique_id=90976876]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("1_e0onf")
