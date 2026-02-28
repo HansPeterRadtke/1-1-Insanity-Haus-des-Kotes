@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ch6ptymavvs0k" path="res://Scripts/Player/Player.cs" id="1_cvnsp"]
 [ext_resource type="Texture2D" uid="uid://37n2k3a7u5ys" path="res://Assets/placeholder/plr.png" id="2_cvnsp"]
+[ext_resource type="Script" uid="uid://ihsxhpss0hgh" path="res://Scripts/Player/Attacks.cs" id="3_xpcdj"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
 size = Vector2(32, 64)
@@ -14,3 +15,12 @@ shape = SubResource("RectangleShape2D_cvnsp")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=337626048]
 texture = ExtResource("2_cvnsp")
+
+[node name="Attacks" type="Marker2D" parent="." unique_id=1032950281]
+script = ExtResource("3_xpcdj")
+
+[node name="KickRaycast" type="RayCast2D" parent="Attacks" unique_id=1655514178]
+target_position = Vector2(75, 0)
+collision_mask = 2
+
+[node name="AttackSoundPlayer" type="AudioStreamPlayer2D" parent="Attacks" unique_id=1785336555]

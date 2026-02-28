@@ -89,6 +89,11 @@ heal={
 ]
 }
 
+[layer_names]
+
+2d_physics/layer_1="TERRAIN"
+2d_physics/layer_2="ENEMY"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

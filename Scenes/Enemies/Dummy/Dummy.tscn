@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://078uwb2u6txy"]
+
+[ext_resource type="Script" uid="uid://c6epan5ac2mhr" path="res://Scripts/Enemies/Dummy/DummyEnemy.cs" id="1_sn26h"]
+[ext_resource type="Texture2D" uid="uid://upb3ugxtf5io" path="res://Assets/placeholder/dummy.png" id="2_gs0ra"]
+[ext_resource type="PackedScene" uid="uid://dlbtrkge07cuy" path="res://Scenes/Enemies/Dummy/DamageDisplay.tscn" id="2_yr28u"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yr28u"]
+size = Vector2(32, 64)
+
+[node name="CharacterBody2D" type="CharacterBody2D" unique_id=1161018026]
+collision_layer = 2
+script = ExtResource("1_sn26h")
+_damageDisplay = ExtResource("2_yr28u")
+IsVulnerable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=890823009]
+shape = SubResource("RectangleShape2D_yr28u")
+
+[node name="Dummy" type="Sprite2D" parent="." unique_id=2132850738]
+texture = ExtResource("2_gs0ra")
