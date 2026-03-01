@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://c0npocj5xikb1"]
+
+[ext_resource type="Script" uid="uid://b047cbilxhgbm" path="res://Scripts/Player/BlueBalls/BlueBall.cs" id="1_xmywo"]
+[ext_resource type="Texture2D" uid="uid://cl0nxu62jblds" path="res://Assets/placeholder/blue_ball.png" id="2_j6207"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uqr5i"]
+radius = 8.0
+
+[node name="BlueBall" type="Area2D" unique_id=1908758471]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_xmywo")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2130936920]
+shape = SubResource("CircleShape2D_uqr5i")
+
+[node name="BlueBall" type="Sprite2D" parent="." unique_id=621463379]
+texture = ExtResource("2_j6207")

@@ -5,9 +5,22 @@ namespace Insanity.Scripts.Player
 {
 	public partial class Attacks : Marker2D
 	{
+		[ExportGroup("Kick")]
+		
 		[Export] public int KickDamage = 5;
+
+		
+		
+		[ExportGroup("Blue Balls")]
+		
+		[Export] public float BlueBallRate = 0.2f;
+		[Export] public float BlueBallAngle = 22.5f;
+		[Export] private PackedScene _blueBallPrefab;
+		
+		
 		
 		private RayCast2D _kickRaycast;
+		private float _timeSinceBall = 0.0f;
 
 		public override void _Ready()
 		{
@@ -26,6 +39,13 @@ namespace Insanity.Scripts.Player
 		    {
 			    _Kick();
 		    }
+
+		    if (Input.IsActionPressed("attack_balls") && _canSpawnBall())
+		    {
+			    _spawnBall();
+		    }
+
+		    _timeSinceBall += (float)delta;
 	    }
 
 		private void _Kick()
@@ -39,6 +59,23 @@ namespace Insanity.Scripts.Player
 			
 			body.Hurt(KickDamage);
 		}
+
+		private void _spawnBall()
+		{
+			_timeSinceBall = 0.0f;
+			var instance = _blueBallPrefab.Instantiate();
+
+			if (instance is BlueBall blueBall)
+			{
+				blueBall.Rotation = Rotation + float.DegreesToRadians((float)GD.RandRange(-BlueBallAngle, BlueBallAngle));
+				blueBall.GlobalPosition = GlobalPosition;
+				GetTree().Root.AddChild(blueBall);
+			}
+
+			
+		}
+		
+		private bool _canSpawnBall() => _timeSinceBall > BlueBallRate;
     }
 }
 
