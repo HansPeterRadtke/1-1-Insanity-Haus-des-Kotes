@@ -14,6 +14,12 @@ size = Vector2(1400, 80)
 [sub_resource type="RectangleShape2D" id="2"]
 size = Vector2(220, 28)
 
+[sub_resource type="RectangleShape2D" id="3"]
+size = Vector2(160, 22)
+
+[sub_resource type="RectangleShape2D" id="4"]
+size = Vector2(180, 20)
+
 [node name="MechanicsTest" type="Node2D"]
 
 [node name="Ground" type="StaticBody2D" parent="."]
@@ -36,6 +42,26 @@ shape = SubResource("2")
 polygon = PackedVector2Array(-110, -14, 110, -14, 110, 14, -110, 14)
 color = Color(0.25, 0.35, 0.45, 1)
 
+[node name="UpperPlatform" type="StaticBody2D" parent="."]
+position = Vector2(420, -16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="UpperPlatform"]
+shape = SubResource("3")
+
+[node name="Polygon2D" type="Polygon2D" parent="UpperPlatform"]
+polygon = PackedVector2Array(-80, -10, 80, -10, 80, 10, -80, 10)
+color = Color(0.35, 0.25, 0.35, 1)
+
+[node name="DuckCeiling" type="StaticBody2D" parent="."]
+position = Vector2(-350, 16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DuckCeiling"]
+shape = SubResource("4")
+
+[node name="Polygon2D" type="Polygon2D" parent="DuckCeiling"]
+polygon = PackedVector2Array(-90, -10, 90, -10, 90, 10, -90, 10)
+color = Color(0.2, 0.45, 0.3, 1)
+
 [node name="Player" parent="." instance=ExtResource("1")]
 position = Vector2(-520, 20)
 
@@ -51,10 +77,10 @@ position_smoothing_speed = 10.0
 [node name="Instructions" type="Label" parent="CanvasLayer"]
 offset_left = 16.0
 offset_top = 16.0
-text = "A/D move  Space jump  Shift sprint  Left Mouse shoot  Q forward shot  F melee  E interact"
+text = "A/D move  Space jump  Shift sprint  C duck  W stand up  Left Mouse shoot  Q forward shot  F melee  E interact"
 
 [node name="SwitchStation" parent="." instance=ExtResource("4")]
-position = Vector2(-240, 62)
+position = Vector2(-240, 24)
 
 [node name="DummyEnemy" parent="." instance=ExtResource("3")]
 position = Vector2(-40, 38)
@@ -63,7 +89,7 @@ position = Vector2(-40, 38)
 position = Vector2(210, 38)
 
 [node name="RangedEnemy" parent="." instance=ExtResource("6")]
-position = Vector2(430, 38)
+position = Vector2(420, -60)
 
 [node name="ExplosiveEnemy" parent="." instance=ExtResource("7")]
 position = Vector2(650, 38)

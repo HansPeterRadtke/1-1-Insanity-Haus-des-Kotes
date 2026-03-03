@@ -1,8 +1,9 @@
 using Godot;
+using Insanity.Scripts.Game;
 
 namespace Insanity.Scripts.Enemies
 {
-    public partial class EnemyProjectile : Area2D
+    public partial class EnemyProjectile : Area2D, ISaveStateNode
     {
         [Export] private float _speed = 260.0f;
         [Export] private float _lifetime = 4.0f;
@@ -12,6 +13,7 @@ namespace Insanity.Scripts.Enemies
 
         public override void _Ready()
         {
+            AddToGroup("save_state");
             BodyEntered += OnBodyEntered;
         }
 
@@ -42,6 +44,40 @@ namespace Insanity.Scripts.Enemies
         private void OnBodyEntered(Node2D body)
         {
             QueueFree();
+        }
+
+        public Godot.Collections.Dictionary<string, Variant> CaptureSaveState()
+        {
+            return new Godot.Collections.Dictionary<string, Variant>
+            {
+                ["global_position"] = GlobalPosition,
+                ["direction"] = _direction,
+                ["speed"] = _speed,
+                ["age"] = _age,
+            };
+        }
+
+        public void RestoreSaveState(Godot.Collections.Dictionary<string, Variant> state)
+        {
+            if (state.TryGetValue("global_position", out Variant positionValue))
+            {
+                GlobalPosition = positionValue.AsVector2();
+            }
+
+            if (state.TryGetValue("direction", out Variant directionValue))
+            {
+                _direction = directionValue.AsVector2();
+            }
+
+            if (state.TryGetValue("speed", out Variant speedValue))
+            {
+                _speed = speedValue.AsSingle();
+            }
+
+            if (state.TryGetValue("age", out Variant ageValue))
+            {
+                _age = ageValue.AsSingle();
+            }
         }
     }
 }

@@ -1,11 +1,12 @@
 using Godot;
 using System;
+using Insanity.Scripts.Game;
 using Insanity.Scripts.Shared;
 
 namespace Insanity.Scripts.Enemies
 {
 	[GlobalClass]
-	public partial class EnemyBody2D : CharacterBody2D
+	public partial class EnemyBody2D : CharacterBody2D, ISaveStateNode
     {
     	[Export] public int Health = 100;
 	    [Export] public int MaxHealth = 100;
@@ -13,6 +14,7 @@ namespace Insanity.Scripts.Enemies
 
 	    public override void _Ready()
 	    {
+		    AddToGroup("save_state");
 		    Health = GameplayRules.ClampHealth(Health, MaxHealth);
 	    }
     
@@ -49,6 +51,46 @@ namespace Insanity.Scripts.Enemies
 		    }
 
 		    return velocity;
+	    }
+
+	    public virtual Godot.Collections.Dictionary<string, Variant> CaptureSaveState()
+	    {
+		    return new Godot.Collections.Dictionary<string, Variant>
+		    {
+			    ["global_position"] = GlobalPosition,
+			    ["velocity"] = Velocity,
+			    ["health"] = Health,
+			    ["max_health"] = MaxHealth,
+			    ["is_vulnerable"] = IsVulnerable,
+		    };
+	    }
+
+	    public virtual void RestoreSaveState(Godot.Collections.Dictionary<string, Variant> state)
+	    {
+		    if (state.TryGetValue("global_position", out Variant positionValue))
+		    {
+			    GlobalPosition = positionValue.AsVector2();
+		    }
+
+		    if (state.TryGetValue("velocity", out Variant velocityValue))
+		    {
+			    Velocity = velocityValue.AsVector2();
+		    }
+
+		    if (state.TryGetValue("health", out Variant healthValue))
+		    {
+			    Health = healthValue.AsInt32();
+		    }
+
+		    if (state.TryGetValue("max_health", out Variant maxHealthValue))
+		    {
+			    MaxHealth = maxHealthValue.AsInt32();
+		    }
+
+		    if (state.TryGetValue("is_vulnerable", out Variant vulnerableValue))
+		    {
+			    IsVulnerable = vulnerableValue.AsBool();
+		    }
 	    }
     }
 
