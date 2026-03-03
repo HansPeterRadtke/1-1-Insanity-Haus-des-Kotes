@@ -1,5 +1,6 @@
 using Godot;
 using Insanity.Scripts.Game;
+using PlayerCharacter = Insanity.Scripts.Player.Player;
 
 namespace Insanity.Scripts.Enemies
 {
@@ -43,6 +44,11 @@ namespace Insanity.Scripts.Enemies
 
         private void OnBodyEntered(Node2D body)
         {
+            if (body is PlayerCharacter player)
+            {
+                player.ApplyDamage(4);
+            }
+
             QueueFree();
         }
 

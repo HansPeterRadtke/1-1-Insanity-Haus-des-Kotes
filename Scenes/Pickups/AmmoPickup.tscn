@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Pickups/Pickup.cs" id="1"]
+
+[sub_resource type="CircleShape2D" id="1"]
+radius = 16.0
+
+[node name="AmmoPickup" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1")
+_kind = 1
+_amount = 8
+_accent = Color(0.4, 0.7, 1, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-14, -10, 14, -10, 14, 10, -14, 10)
+color = Color(0.4, 0.7, 1, 1)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -24.0
+offset_top = -34.0
+offset_right = 24.0
+offset_bottom = -6.0
+horizontal_alignment = 1
+text = "+AM 8"

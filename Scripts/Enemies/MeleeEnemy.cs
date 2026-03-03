@@ -32,6 +32,7 @@ namespace Insanity.Scripts.Enemies
                 if (step.ShouldAttack)
                 {
                     _timeSinceAttack = 0.0f;
+                    player.ApplyDamage(8);
                     Modulate = new Color(1.0f, 0.7f, 0.7f);
                 }
                 else

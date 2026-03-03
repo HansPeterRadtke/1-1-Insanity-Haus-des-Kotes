@@ -31,6 +31,7 @@ namespace Insanity.Scripts.Enemies
                 velocity.X = step.VelocityX;
                 if (step.ShouldExplode)
                 {
+                    player.ApplyDamage(20);
                     Die();
                     return;
                 }

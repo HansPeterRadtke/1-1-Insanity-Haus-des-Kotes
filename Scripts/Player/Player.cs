@@ -14,11 +14,24 @@ namespace Insanity.Scripts.Player
         [Export] private float _interactRadius = 42.0f;
         [Export] private float _jumpVelocity = -400.0f;
         [Export] private float _coyoteTime = 0.2f;
+        [ExportGroup("Stats")]
+        [Export] private int _maxHealth = 10;
+        [Export] private int _startingAmmo = 12;
+        [Export] private int _maxAmmo = 24;
+        [Export] private float _damageInvulnerabilitySeconds = 0.65f;
+        [Export] private float _defaultSpeedBoostMultiplier = 1.6f;
 
         private Vector2 _direction;
         private bool _flipped;
         private bool _isDucking;
         private float _timeSinceGrounded;
+        private int _health;
+        private int _ammo;
+        private int _coins;
+        private float _damageInvulnerabilityRemaining;
+        private float _speedBoostRemaining;
+        private float _speedBoostMultiplier = 1.0f;
+        private Vector2 _spawnPosition;
         private RayCast2D _interactionRaycast;
         private GameManager _gameManager;
         private CollisionShape2D _collisionShape;
@@ -35,6 +48,15 @@ namespace Insanity.Scripts.Player
         
         public float FacingDirection { get; private set; } = 1.0f;
         public bool IsDucking => _isDucking;
+        public int Health => _health;
+        public int MaxHealth => _maxHealth;
+        public int Ammo => _ammo;
+        public int MaxAmmo => _maxAmmo;
+        public int Coins => _coins;
+        public bool HasSpeedBoost => _speedBoostRemaining > 0.001f;
+        public float SpeedBoostRemaining => _speedBoostRemaining;
+        public float SpeedBoostMultiplier => HasSpeedBoost ? _speedBoostMultiplier : 1.0f;
+        public float CurrentMoveSpeed => GetBaseMoveSpeed() * (_isDucking ? _duckSpeedMultiplier : 1.0f);
 
         public override void _Ready()
         {
@@ -46,12 +68,14 @@ namespace Insanity.Scripts.Player
             _sprite = GetNode<Sprite2D>("Sprite2D");
             _interactionRaycast = GetNode<RayCast2D>("InteractionRaycast");
             InitializeDuckState();
+            InitializeStats();
             UpdateInteractionRaycast();
         }
 
         public override void _PhysicsProcess(double delta)
         {
             Vector2 velocity = Velocity;
+            UpdateTimers((float)delta);
     
             // Add the gravity.
             if (!IsOnFloor())
@@ -88,7 +112,7 @@ namespace Insanity.Scripts.Player
     
             float inputX = Input.GetAxis("move_left", "move_right");
             _direction = new Vector2(inputX, 0.0f);
-            float moveSpeed = _isDucking ? _speed * _duckSpeedMultiplier : _speed;
+            float moveSpeed = _isDucking ? GetBaseMoveSpeed() * _duckSpeedMultiplier : GetBaseMoveSpeed();
             float sprintMultiplier = _isDucking ? 1.0f : _sprintMultiplier;
             velocity.X = GameplayRules.ResolveHorizontalVelocity(
                 Velocity.X,
@@ -111,6 +135,7 @@ namespace Insanity.Scripts.Player
         {
             FacingDirection = GameplayRules.ResolveFacingDirection(FacingDirection, _direction.X);
             UpdateInteractionRaycast();
+            UpdateStatusVisuals();
 
             if (_direction.X != 0.0f)
             {
@@ -335,6 +360,188 @@ namespace Insanity.Scripts.Player
             }
 
             UpdateInteractionRaycast();
+            EmitStatsChanged();
+        }
+
+        private void InitializeStats()
+        {
+            _maxHealth = Mathf.Max(1, _maxHealth);
+            _maxAmmo = Mathf.Max(0, _maxAmmo);
+            _health = _maxHealth;
+            _ammo = Mathf.Clamp(_startingAmmo, 0, _maxAmmo);
+            _coins = 0;
+            _damageInvulnerabilityRemaining = 0.0f;
+            _speedBoostRemaining = 0.0f;
+            _speedBoostMultiplier = 1.0f;
+            _spawnPosition = GlobalPosition;
+            EmitStatsChanged();
+        }
+
+        private void UpdateTimers(float delta)
+        {
+            bool speedBoostExpired = false;
+
+            if (_damageInvulnerabilityRemaining > 0.0f)
+            {
+                _damageInvulnerabilityRemaining = Mathf.Max(0.0f, _damageInvulnerabilityRemaining - delta);
+            }
+
+            if (_speedBoostRemaining > 0.0f)
+            {
+                _speedBoostRemaining = Mathf.Max(0.0f, _speedBoostRemaining - delta);
+                if (_speedBoostRemaining <= 0.0f)
+                {
+                    _speedBoostMultiplier = 1.0f;
+                    speedBoostExpired = true;
+                }
+            }
+
+            if (speedBoostExpired)
+            {
+                EmitStatsChanged();
+            }
+        }
+
+        private void UpdateStatusVisuals()
+        {
+            if (_sprite == null)
+            {
+                return;
+            }
+
+            if (_damageInvulnerabilityRemaining > 0.0f)
+            {
+                _sprite.Modulate = new Color(1.0f, 0.55f, 0.55f, 1.0f);
+                return;
+            }
+
+            if (HasSpeedBoost)
+            {
+                _sprite.Modulate = new Color(0.7f, 1.0f, 0.8f, 1.0f);
+                return;
+            }
+
+            _sprite.Modulate = Colors.White;
+        }
+
+        private float GetBaseMoveSpeed()
+        {
+            return _speed * (HasSpeedBoost ? _speedBoostMultiplier : 1.0f);
+        }
+
+        public bool ApplyDamage(int damage)
+        {
+            if (damage <= 0 || _health <= 0 || _damageInvulnerabilityRemaining > 0.0f)
+            {
+                return false;
+            }
+
+            _health = GameplayRules.ApplyDamage(_health, damage);
+            _damageInvulnerabilityRemaining = _damageInvulnerabilitySeconds;
+
+            if (_health <= 0)
+            {
+                Respawn();
+            }
+            else
+            {
+                EmitStatsChanged();
+            }
+
+            return true;
+        }
+
+        public void Heal(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            int previousHealth = _health;
+            _health = GameplayRules.ClampHealth(_health + amount, _maxHealth);
+            if (_health != previousHealth)
+            {
+                EmitStatsChanged();
+            }
+        }
+
+        public bool TryConsumeAmmo(int amount)
+        {
+            if (amount <= 0)
+            {
+                return true;
+            }
+
+            if (_ammo < amount)
+            {
+                return false;
+            }
+
+            _ammo -= amount;
+            EmitStatsChanged();
+            return true;
+        }
+
+        public void AddAmmo(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            int previousAmmo = _ammo;
+            _ammo = Mathf.Clamp(_ammo + amount, 0, _maxAmmo);
+            if (_ammo != previousAmmo)
+            {
+                EmitStatsChanged();
+            }
+        }
+
+        public void AddCoins(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            _coins += amount;
+            EmitStatsChanged();
+        }
+
+        public void ApplySpeedBoost(float multiplier, float durationSeconds)
+        {
+            if (durationSeconds <= 0.0f)
+            {
+                return;
+            }
+
+            float requestedMultiplier = Mathf.Max(1.0f, multiplier <= 0.0f ? _defaultSpeedBoostMultiplier : multiplier);
+            if (_speedBoostRemaining <= 0.0f || requestedMultiplier >= _speedBoostMultiplier)
+            {
+                _speedBoostMultiplier = requestedMultiplier;
+            }
+
+            _speedBoostRemaining = Mathf.Max(_speedBoostRemaining, durationSeconds);
+            EmitStatsChanged();
+        }
+
+        private void Respawn()
+        {
+            _health = _maxHealth;
+            _ammo = Mathf.Clamp(_startingAmmo, 0, _maxAmmo);
+            _damageInvulnerabilityRemaining = _damageInvulnerabilitySeconds;
+            _speedBoostRemaining = 0.0f;
+            _speedBoostMultiplier = 1.0f;
+            Velocity = Vector2.Zero;
+            GlobalPosition = _spawnPosition;
+            SetDuckState(false);
+            EmitStatsChanged();
+        }
+
+        private void EmitStatsChanged()
+        {
+            // HUD polls every frame, but a single hook keeps state updates centralized.
         }
 
         public Godot.Collections.Dictionary<string, Variant> CaptureSaveState()
@@ -345,6 +552,13 @@ namespace Insanity.Scripts.Player
                 ["velocity"] = Velocity,
                 ["facing_direction"] = FacingDirection,
                 ["is_ducking"] = _isDucking,
+                ["health"] = _health,
+                ["ammo"] = _ammo,
+                ["coins"] = _coins,
+                ["damage_invulnerability"] = _damageInvulnerabilityRemaining,
+                ["speed_boost_remaining"] = _speedBoostRemaining,
+                ["speed_boost_multiplier"] = _speedBoostMultiplier,
+                ["spawn_position"] = _spawnPosition,
             };
         }
 
@@ -368,6 +582,41 @@ namespace Insanity.Scripts.Player
             if (state.TryGetValue("is_ducking", out Variant duckingValue))
             {
                 SetDuckState(duckingValue.AsBool());
+            }
+
+            if (state.TryGetValue("health", out Variant healthValue))
+            {
+                _health = GameplayRules.ClampHealth(healthValue.AsInt32(), _maxHealth);
+            }
+
+            if (state.TryGetValue("ammo", out Variant ammoValue))
+            {
+                _ammo = Mathf.Clamp(ammoValue.AsInt32(), 0, _maxAmmo);
+            }
+
+            if (state.TryGetValue("coins", out Variant coinsValue))
+            {
+                _coins = Mathf.Max(0, coinsValue.AsInt32());
+            }
+
+            if (state.TryGetValue("damage_invulnerability", out Variant invulnerabilityValue))
+            {
+                _damageInvulnerabilityRemaining = Mathf.Max(0.0f, invulnerabilityValue.AsSingle());
+            }
+
+            if (state.TryGetValue("speed_boost_remaining", out Variant speedBoostRemainingValue))
+            {
+                _speedBoostRemaining = Mathf.Max(0.0f, speedBoostRemainingValue.AsSingle());
+            }
+
+            if (state.TryGetValue("speed_boost_multiplier", out Variant speedBoostMultiplierValue))
+            {
+                _speedBoostMultiplier = Mathf.Max(1.0f, speedBoostMultiplierValue.AsSingle());
+            }
+
+            if (state.TryGetValue("spawn_position", out Variant spawnPositionValue))
+            {
+                _spawnPosition = spawnPositionValue.AsVector2();
             }
         }
     }

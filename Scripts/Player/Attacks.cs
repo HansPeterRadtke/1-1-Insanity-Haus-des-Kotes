@@ -18,6 +18,7 @@
 		
 		[Export] public float BlueBallRate = 0.2f;
 		[Export] public float BlueBallAngle = 22.5f;
+		[Export] public int AmmoPerShot = 1;
 		[Export] private PackedScene _blueBallPrefab;
 		
 			
@@ -50,13 +51,13 @@
 
 			    if (Input.IsActionPressed("shoot") && _canSpawnBall())
 			    {
-				    _spawnBall(Rotation);
+				    TrySpawnBall(Rotation);
 			    }
 
 			    if (Input.IsActionJustPressed("shoot_forward") && _canSpawnBall())
 			    {
 				    float facingRotation = _player is null || _player.FacingDirection >= 0.0f ? 0.0f : MathF.PI;
-				    _spawnBall(facingRotation);
+				    TrySpawnBall(facingRotation);
 			    }
 
 			    _timeSinceBall += (float)delta;
@@ -103,17 +104,32 @@
 
 			private void _spawnBall(float rotation)
 			{
-				_timeSinceBall = 0.0f;
 				var instance = _blueBallPrefab.Instantiate();
 
 				if (instance is BlueBall blueBall)
 				{
+					_timeSinceBall = 0.0f;
 					blueBall.Rotation = rotation + float.DegreesToRadians((float)GD.RandRange(-BlueBallAngle, BlueBallAngle));
 					blueBall.GlobalPosition = GlobalPosition;
 					GetTree().CurrentScene?.AddChild(blueBall);
 				}
 
 			
+			}
+
+			private void TrySpawnBall(float rotation)
+			{
+				if (_blueBallPrefab == null)
+				{
+					return;
+				}
+
+				if (_player != null && !_player.TryConsumeAmmo(AmmoPerShot))
+				{
+					return;
+				}
+
+				_spawnBall(rotation);
 			}
 			
 			private bool _canSpawnBall() => GameplayRules.CanUseCooldown(_timeSinceBall, BlueBallRate);

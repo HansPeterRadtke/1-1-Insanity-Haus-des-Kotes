@@ -7,6 +7,10 @@
 [ext_resource type="PackedScene" path="res://Scenes/Enemies/MeleeEnemy.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://Scenes/Enemies/RangedEnemy.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://Scenes/Enemies/ExplosiveEnemy.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://Scenes/Pickups/HealthPickup.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://Scenes/Pickups/AmmoPickup.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://Scenes/Pickups/SpeedPickup.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://Scenes/Pickups/CoinPickup.tscn" id="11"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(1400, 80)
@@ -77,13 +81,25 @@ position_smoothing_speed = 10.0
 [node name="Instructions" type="Label" parent="CanvasLayer"]
 offset_left = 16.0
 offset_top = 16.0
-text = "A/D move  Space jump  Shift sprint  C duck  W stand up  Left Mouse shoot  Q forward shot  F melee  E interact"
+text = "A/D move  Space jump  Shift sprint  C duck  W stand up  Left Mouse shoot  Q forward shot  F melee  E interact  Pickups: HP/Ammo/Speed/Coin"
 
 [node name="SwitchStation" parent="." instance=ExtResource("4")]
 position = Vector2(-240, 24)
 
 [node name="DummyEnemy" parent="." instance=ExtResource("3")]
 position = Vector2(-40, 38)
+
+[node name="HealthPickup" parent="." instance=ExtResource("8")]
+position = Vector2(-120, 72)
+
+[node name="AmmoPickup" parent="." instance=ExtResource("9")]
+position = Vector2(40, 72)
+
+[node name="SpeedPickup" parent="." instance=ExtResource("10")]
+position = Vector2(300, 72)
+
+[node name="CoinPickup" parent="." instance=ExtResource("11")]
+position = Vector2(-300, 72)
 
 [node name="MeleeEnemy" parent="." instance=ExtResource("5")]
 position = Vector2(210, 38)
