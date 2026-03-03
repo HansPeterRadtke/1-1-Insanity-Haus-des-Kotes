@@ -1,0 +1,69 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/Player/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://Scenes/hud.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://Scenes/Enemies/Dummy/Dummy.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://Scenes/Props/InteractionSwitch.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://Scenes/Enemies/MeleeEnemy.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://Scenes/Enemies/RangedEnemy.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://Scenes/Enemies/ExplosiveEnemy.tscn" id="7"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(1400, 80)
+
+[sub_resource type="RectangleShape2D" id="2"]
+size = Vector2(220, 28)
+
+[node name="MechanicsTest" type="Node2D"]
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(0, 110)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("1")
+
+[node name="Polygon2D" type="Polygon2D" parent="Ground"]
+polygon = PackedVector2Array(-700, -40, 700, -40, 700, 40, -700, 40)
+color = Color(0.22, 0.22, 0.24, 1)
+
+[node name="JumpPlatform" type="StaticBody2D" parent="."]
+position = Vector2(170, 20)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="JumpPlatform"]
+shape = SubResource("2")
+
+[node name="Polygon2D" type="Polygon2D" parent="JumpPlatform"]
+polygon = PackedVector2Array(-110, -14, 110, -14, 110, 14, -110, 14)
+color = Color(0.25, 0.35, 0.45, 1)
+
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector2(-520, 20)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+zoom = Vector2(1.4, 1.4)
+position_smoothing_enabled = true
+position_smoothing_speed = 10.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("2")]
+
+[node name="Instructions" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 16.0
+text = "A/D move  Space jump  Shift sprint  Left Mouse shoot  Q forward shot  F melee  E interact"
+
+[node name="SwitchStation" parent="." instance=ExtResource("4")]
+position = Vector2(-240, 62)
+
+[node name="DummyEnemy" parent="." instance=ExtResource("3")]
+position = Vector2(-40, 38)
+
+[node name="MeleeEnemy" parent="." instance=ExtResource("5")]
+position = Vector2(210, 38)
+
+[node name="RangedEnemy" parent="." instance=ExtResource("6")]
+position = Vector2(430, 38)
+
+[node name="ExplosiveEnemy" parent="." instance=ExtResource("7")]
+position = Vector2(650, 38)
