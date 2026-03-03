@@ -1,5 +1,4 @@
 ﻿using Godot;
-using System;
 
 namespace Insanity.Scripts.Enemies.Dummy
 {
@@ -16,6 +15,13 @@ namespace Insanity.Scripts.Enemies.Dummy
                 displayInstance.Position = Vector2.Zero;
                 AddChild(displayInstance);
             }
+
+            base.Hurt(damage);
+        }
+
+        public override void Die()
+        {
+            QueueFree();
         }
     }
 }

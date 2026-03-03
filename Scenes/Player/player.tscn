@@ -26,3 +26,6 @@ target_position = Vector2(75, 0)
 collision_mask = 2
 
 [node name="AttackSoundPlayer" type="AudioStreamPlayer2D" parent="Attacks" unique_id=1785336555]
+
+[node name="InteractionRaycast" type="RayCast2D" parent="." unique_id=1142071208]
+target_position = Vector2(48, 0)

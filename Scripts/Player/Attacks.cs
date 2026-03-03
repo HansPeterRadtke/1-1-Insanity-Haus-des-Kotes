@@ -1,8 +1,10 @@
-using Godot;
-using Insanity.Scripts.Enemies;
+	using Godot;
+	using Insanity.Scripts.Enemies;
+	using System;
+	using Insanity.Scripts.Shared;
 
-namespace Insanity.Scripts.Player
-{
+	namespace Insanity.Scripts.Player
+	{
 	public partial class Attacks : Marker2D
 	{
 		[ExportGroup("Kick")]
@@ -17,15 +19,17 @@ namespace Insanity.Scripts.Player
 		[Export] public float BlueBallAngle = 22.5f;
 		[Export] private PackedScene _blueBallPrefab;
 		
-		
-		
-		private RayCast2D _kickRaycast;
-		private float _timeSinceBall = 0.0f;
+			
+			
+			private RayCast2D _kickRaycast;
+			private Player _player;
+			private float _timeSinceBall = 0.0f;
 
-		public override void _Ready()
-		{
-			_kickRaycast = GetNode<RayCast2D>("KickRaycast");
-		}
+			public override void _Ready()
+			{
+				_player = GetParent<Player>();
+				_kickRaycast = GetNode<RayCast2D>("KickRaycast");
+			}
 
 		public override void _Process(double delta)
 	    {
@@ -35,24 +39,31 @@ namespace Insanity.Scripts.Player
 
 		    Rotation = mouseAngle;
 
-		    if (Input.IsActionJustPressed("attack_kick"))
-		    {
-			    _Kick();
-		    }
+			    if (Input.IsActionJustPressed("melee"))
+			    {
+				    _Kick();
+			    }
 
-		    if (Input.IsActionPressed("attack_balls") && _canSpawnBall())
-		    {
-			    _spawnBall();
-		    }
+			    if (Input.IsActionPressed("shoot") && _canSpawnBall())
+			    {
+				    _spawnBall(Rotation);
+			    }
 
-		    _timeSinceBall += (float)delta;
+			    if (Input.IsActionJustPressed("shoot_forward") && _canSpawnBall())
+			    {
+				    float facingRotation = _player is null || _player.FacingDirection >= 0.0f ? 0.0f : MathF.PI;
+				    _spawnBall(facingRotation);
+			    }
+
+			    _timeSinceBall += (float)delta;
 	    }
 
-		private void _Kick()
-		{
-			var body = _kickRaycast.GetCollider() as EnemyBody2D;
+			private void _Kick()
+			{
+				_kickRaycast.ForceRaycastUpdate();
+				var body = _kickRaycast.GetCollider() as EnemyBody2D;
 
-			if (body is null)
+				if (body is null)
 			{
 				return;
 			}
@@ -60,22 +71,21 @@ namespace Insanity.Scripts.Player
 			body.Hurt(KickDamage);
 		}
 
-		private void _spawnBall()
-		{
-			_timeSinceBall = 0.0f;
-			var instance = _blueBallPrefab.Instantiate();
-
-			if (instance is BlueBall blueBall)
+			private void _spawnBall(float rotation)
 			{
-				blueBall.Rotation = Rotation + float.DegreesToRadians((float)GD.RandRange(-BlueBallAngle, BlueBallAngle));
-				blueBall.GlobalPosition = GlobalPosition;
-				GetTree().Root.AddChild(blueBall);
-			}
+				_timeSinceBall = 0.0f;
+				var instance = _blueBallPrefab.Instantiate();
+
+				if (instance is BlueBall blueBall)
+				{
+					blueBall.Rotation = rotation + float.DegreesToRadians((float)GD.RandRange(-BlueBallAngle, BlueBallAngle));
+					blueBall.GlobalPosition = GlobalPosition;
+					GetTree().Root.AddChild(blueBall);
+				}
 
 			
-		}
-		
-		private bool _canSpawnBall() => _timeSinceBall > BlueBallRate;
-    }
-}
-
+			}
+			
+			private bool _canSpawnBall() => GameplayRules.CanUseCooldown(_timeSinceBall, BlueBallRate);
+	    }
+	}
