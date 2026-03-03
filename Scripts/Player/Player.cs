@@ -11,6 +11,7 @@ namespace Insanity.Scripts.Player
         [Export] private float _sprintMultiplier = 1.5f;
         [Export] private float _duckSpeedMultiplier = 0.4f;
         [Export] private float _duckHeight = 36.0f;
+        [Export] private float _interactRadius = 42.0f;
         [Export] private float _jumpVelocity = -400.0f;
         [Export] private float _coyoteTime = 0.2f;
 
@@ -63,12 +64,14 @@ namespace Insanity.Scripts.Player
                 _timeSinceGrounded = 0.0f;
             }
     
-            if (_isDucking && Input.IsActionJustPressed("jump"))
+            bool jumpPressed = Input.IsActionJustPressed("jump");
+            if (_isDucking && jumpPressed)
             {
                 DisableDuck();
             }
+
             // Handle Jump.
-            else if (!_isDucking && Input.IsActionJustPressed("jump") && CanJump())
+            if (!_isDucking && jumpPressed && CanJump())
             {
                 velocity.Y = _jumpVelocity;
             }
@@ -133,16 +136,88 @@ namespace Insanity.Scripts.Player
 
         private void TryInteract()
         {
+            Node nearbyInteractable = FindNearbyInteractable();
+            if (nearbyInteractable is IInteractable nearby)
+            {
+                nearby.Interact(this);
+                return;
+            }
+
             if (_interactionRaycast == null)
             {
                 return;
             }
 
             var collider = _interactionRaycast.GetCollider();
-            if (collider is Node node && node is IInteractable interactable)
+            if (ResolveInteractableNode(collider) is IInteractable interactable)
             {
                 interactable.Interact(this);
             }
+        }
+
+        private Node FindNearbyInteractable()
+        {
+            CircleShape2D interactShape = new()
+            {
+                Radius = _interactRadius,
+            };
+
+            PhysicsShapeQueryParameters2D query = new()
+            {
+                Shape = interactShape,
+                Transform = new Transform2D(0.0f, GlobalPosition),
+                CollideWithBodies = true,
+                CollideWithAreas = false,
+            };
+            query.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
+
+            var results = GetWorld2D().DirectSpaceState.IntersectShape(query, 8);
+            Node bestNode = null;
+            float bestDistanceSquared = float.MaxValue;
+
+            foreach (Godot.Collections.Dictionary result in results)
+            {
+                if (!result.TryGetValue("collider", out Variant colliderValue))
+                {
+                    continue;
+                }
+
+                Node interactableNode = ResolveInteractableNode(colliderValue.AsGodotObject());
+                if (interactableNode is not IInteractable)
+                {
+                    continue;
+                }
+
+                if (interactableNode is not Node2D node2D)
+                {
+                    return interactableNode;
+                }
+
+                float distanceSquared = GlobalPosition.DistanceSquaredTo(node2D.GlobalPosition);
+                if (distanceSquared < bestDistanceSquared)
+                {
+                    bestDistanceSquared = distanceSquared;
+                    bestNode = interactableNode;
+                }
+            }
+
+            return bestNode;
+        }
+
+        private static Node ResolveInteractableNode(object collider)
+        {
+            if (collider is not Node node)
+            {
+                return null;
+            }
+
+            if (node is IInteractable)
+            {
+                return node;
+            }
+
+            Node parent = node.GetParent();
+            return parent is IInteractable ? parent : null;
         }
 
         private void UpdateInteractionRaycast()
