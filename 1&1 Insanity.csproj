@@ -5,4 +5,8 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>Insanity</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove=".godot/**/*.cs" />
+    <Compile Remove="Tools/**/*.cs" />
+  </ItemGroup>
 </Project>
