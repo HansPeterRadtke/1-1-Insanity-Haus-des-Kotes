@@ -1,30 +1,34 @@
-[gd_scene format=3 uid="uid://cllflwnqwcj"]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://ch6ptymavvs0k" path="res://Scripts/Player/Player.cs" id="1_cvnsp"]
-[ext_resource type="Texture2D" uid="uid://37n2k3a7u5ys" path="res://Assets/placeholder/plr.png" id="2_cvnsp"]
-[ext_resource type="Script" uid="uid://ihsxhpss0hgh" path="res://Scripts/Player/Attacks.cs" id="3_xpcdj"]
-[ext_resource type="PackedScene" uid="uid://c0npocj5xikb1" path="res://Scenes/Player/Attacks/blue_ball.tscn" id="4_mtuoh"]
+[ext_resource type="Script" path="res://Scripts/Player/Player.cs" id="1"]
+[ext_resource type="Texture2D" path="res://Assets/placeholder/plr.png" id="2"]
+[ext_resource type="Script" path="res://Scripts/Player/Attacks.cs" id="3"]
+[ext_resource type="PackedScene" path="res://Scenes/Player/Attacks/blue_ball.tscn" id="4"]
+[ext_resource type="Script" path="res://Scripts/Animation/AnimationController.cs" id="5"]
+[ext_resource type="Script" path="res://Scripts/Audio/SfxPlayer.cs" id="6"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
+[sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(32, 64)
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_melee"]
+[sub_resource type="CircleShape2D" id="2"]
 radius = 28.0
 
-[node name="Player" type="CharacterBody2D" unique_id=1358269783]
-script = ExtResource("1_cvnsp")
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1390214064]
-shape = SubResource("RectangleShape2D_cvnsp")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=337626048]
-texture = ExtResource("2_cvnsp")
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2")
 
-[node name="Attacks" type="Marker2D" parent="." unique_id=1032950281]
-script = ExtResource("3_xpcdj")
-_blueBallPrefab = ExtResource("4_mtuoh")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 
-[node name="KickRaycast" type="RayCast2D" parent="Attacks" unique_id=1655514178]
+[node name="Attacks" type="Marker2D" parent="."]
+script = ExtResource("3")
+_blueBallPrefab = ExtResource("4")
+
+[node name="KickRaycast" type="RayCast2D" parent="Attacks"]
 target_position = Vector2(75, 0)
 collision_mask = 2
 
@@ -35,9 +39,20 @@ monitoring = true
 monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Attacks/MeleeArea"]
-shape = SubResource("CircleShape2D_melee")
+shape = SubResource("2")
 
-[node name="AttackSoundPlayer" type="AudioStreamPlayer2D" parent="Attacks" unique_id=1785336555]
+[node name="AttackSoundPlayer" type="AudioStreamPlayer2D" parent="Attacks"]
 
-[node name="InteractionRaycast" type="RayCast2D" parent="." unique_id=1142071208]
+[node name="InteractionRaycast" type="RayCast2D" parent="."]
 target_position = Vector2(48, 0)
+
+[node name="AnimationController" type="Node" parent="."]
+script = ExtResource("5")
+ActorId = "Player"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimationController"]
+
+[node name="AnimationTree" type="AnimationTree" parent="AnimationController"]
+
+[node name="SfxPlayer" type="AudioStreamPlayer2D" parent="AnimationController"]
+script = ExtResource("6")

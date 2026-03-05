@@ -1,6 +1,6 @@
 # 1&1 Insanity
 
-Godot 4.6 + C# prototype project with a working main menu, in-game pause menu, configurable controls, save/load slots, player stats, pickups, and dedicated gameplay test scenes.
+Godot 4.6 + C# prototype project with a working main menu, in-game pause menu, configurable controls, save/load slots, player stats, pickups, dedicated gameplay test scenes, and a runtime-scanned 2D animation/SFX pipeline built on `AnimationPlayer` + `AnimationTree`.
 
 ## Current State
 
@@ -14,6 +14,8 @@ The project now boots into a proper main menu and supports a playable 2D platfor
 - player stats with HUD display
 - consumable ammo and limited ranged shots
 - collectible pickups for health, ammo, speed boost, and coins
+- generic animation controller with state-machine playback, animation events, and optional fallback SFX
+- animation/SFX conventions documented in `Docs/AnimationSystem.md`
 - mechanic test scene with:
   - movement
   - sprint
@@ -78,6 +80,9 @@ Main responsibilities:
 - `Scenes/Tests/MechanicsTest.tscn`
   - current primary gameplay scene
   - contains the player, HUD, switch, pickups, and enemy variants
+- `Scenes/Tests/AnimationSfxTest.tscn`
+  - dedicated animation/SFX system test scene
+  - allows direct state triggering and logs animation events / SFX playback
 - `Scenes/Game/StatsPickupTest.tscn`
   - headless regression scene for player stats, HUD, and pickup behavior
 - `Scenes/Player/player.tscn`
@@ -88,6 +93,14 @@ Main responsibilities:
   - melee and ranged player attacks, ammo consumption
 - `Scripts/Player/BlueBalls/BlueBall.cs`
   - player projectile
+- `Scripts/Animation/AnimationController.cs`
+  - drives `AnimationTree` state machine playback from gameplay state
+- `Scripts/Animation/AnimationRegistry.cs`
+  - scans `Assets/Characters/<actor>/Animations` and `Sounds` at runtime
+- `Scripts/Audio/SfxPlayer.cs`
+  - resolves event -> sound variant and plays it safely
+- `Assets/Characters/README.md`
+  - defines the asset folder convention, state/event taxonomy, and fallback rules
 - `Scenes/hud.tscn`
   - HUD scene shown in the active gameplay test scene
 - `Scripts/UI/HudController.cs`

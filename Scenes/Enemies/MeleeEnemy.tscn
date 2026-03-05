@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://Scripts/Enemies/MeleeEnemy.cs" id="1"]
 [ext_resource type="Texture2D" path="res://Assets/placeholder/dummy.png" id="2"]
+[ext_resource type="Script" path="res://Scripts/Animation/AnimationController.cs" id="3"]
+[ext_resource type="Script" path="res://Scripts/Audio/SfxPlayer.cs" id="4"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(32, 64)
@@ -18,3 +20,17 @@ shape = SubResource("1")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2")
 modulate = Color(1, 0.55, 0.55, 1)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+modulate = Color(1, 0.55, 0.55, 1)
+
+[node name="AnimationController" type="Node" parent="."]
+script = ExtResource("3")
+ActorId = "MeleeEnemy"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimationController"]
+
+[node name="AnimationTree" type="AnimationTree" parent="AnimationController"]
+
+[node name="SfxPlayer" type="AudioStreamPlayer2D" parent="AnimationController"]
+script = ExtResource("4")

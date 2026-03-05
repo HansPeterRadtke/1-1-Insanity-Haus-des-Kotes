@@ -1,4 +1,5 @@
 using Godot;
+using Insanity.Scripts.Animation;
 using Insanity.Scripts.Game;
 using Insanity.Scripts.Interaction;
 using Insanity.Scripts.Shared;
@@ -37,6 +38,8 @@ namespace Insanity.Scripts.Player
         private CollisionShape2D _collisionShape;
         private RectangleShape2D _collisionRectangle;
         private Sprite2D _sprite;
+        private AnimatedSprite2D _animatedSprite;
+        private AnimationController _animationController;
         private Vector2 _standingCollisionSize;
         private Vector2 _standingCollisionOffset;
         private Vector2 _duckCollisionSize;
@@ -45,6 +48,12 @@ namespace Insanity.Scripts.Player
         private Vector2 _standingSpriteScale;
         private Vector2 _duckSpritePosition;
         private Vector2 _duckSpriteScale;
+        private Vector2 _standingAnimatedSpritePosition;
+        private Vector2 _standingAnimatedSpriteScale;
+        private Vector2 _duckAnimatedSpritePosition;
+        private Vector2 _duckAnimatedSpriteScale;
+        private bool _wasGrounded;
+        private bool _justLandedThisFrame;
         
         public float FacingDirection { get; private set; } = 1.0f;
         public bool IsDucking => _isDucking;
@@ -66,10 +75,13 @@ namespace Insanity.Scripts.Player
             _collisionShape = GetNode<CollisionShape2D>("CollisionShape2D");
             _collisionRectangle = _collisionShape?.Shape as RectangleShape2D;
             _sprite = GetNode<Sprite2D>("Sprite2D");
+            _animatedSprite = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+            _animationController = GetNodeOrNull<AnimationController>("AnimationController");
             _interactionRaycast = GetNode<RayCast2D>("InteractionRaycast");
             InitializeDuckState();
             InitializeStats();
             UpdateInteractionRaycast();
+            _wasGrounded = IsOnFloor();
         }
 
         public override void _PhysicsProcess(double delta)
@@ -129,6 +141,10 @@ namespace Insanity.Scripts.Player
     
             Velocity = velocity;
             MoveAndSlide();
+            bool groundedNow = IsOnFloor();
+            _justLandedThisFrame = !_wasGrounded && groundedNow;
+            _wasGrounded = groundedNow;
+            SyncAnimationState();
         }
 
         public override void _Process(double delta)
@@ -140,7 +156,14 @@ namespace Insanity.Scripts.Player
             if (_direction.X != 0.0f)
             {
                 _flipped = _direction.X < 0;
-                GetNode<Sprite2D>("Sprite2D").FlipH = _flipped;
+                if (_sprite != null)
+                {
+                    _sprite.FlipH = _flipped;
+                }
+                if (_animatedSprite != null)
+                {
+                    _animatedSprite.FlipH = _flipped;
+                }
             }
         }
 
@@ -165,6 +188,7 @@ namespace Insanity.Scripts.Player
             if (nearbyInteractable is IInteractable nearby)
             {
                 nearby.Interact(this);
+                _animationController?.PlayOneShot(AnimationStates.Interact);
                 return;
             }
 
@@ -177,6 +201,7 @@ namespace Insanity.Scripts.Player
             if (ResolveInteractableNode(collider) is IInteractable interactable)
             {
                 interactable.Interact(this);
+                _animationController?.PlayOneShot(AnimationStates.Interact);
             }
         }
 
@@ -278,6 +303,14 @@ namespace Insanity.Scripts.Player
                 _duckSpritePosition = _standingSpritePosition + new Vector2(0.0f, offsetDelta);
                 _duckSpriteScale = new Vector2(_standingSpriteScale.X, _standingSpriteScale.Y * 0.6f);
             }
+
+            if (_animatedSprite != null)
+            {
+                _standingAnimatedSpritePosition = _animatedSprite.Position;
+                _standingAnimatedSpriteScale = _animatedSprite.Scale;
+                _duckAnimatedSpritePosition = _standingAnimatedSpritePosition + new Vector2(0.0f, offsetDelta);
+                _duckAnimatedSpriteScale = new Vector2(_standingAnimatedSpriteScale.X, _standingAnimatedSpriteScale.Y * 0.6f);
+            }
         }
 
         private void EnableDuck()
@@ -359,6 +392,12 @@ namespace Insanity.Scripts.Player
                 _sprite.Scale = isDucking ? _duckSpriteScale : _standingSpriteScale;
             }
 
+            if (_animatedSprite != null)
+            {
+                _animatedSprite.Position = isDucking ? _duckAnimatedSpritePosition : _standingAnimatedSpritePosition;
+                _animatedSprite.Scale = isDucking ? _duckAnimatedSpriteScale : _standingAnimatedSpriteScale;
+            }
+
             UpdateInteractionRaycast();
             EmitStatsChanged();
         }
@@ -404,24 +443,29 @@ namespace Insanity.Scripts.Player
 
         private void UpdateStatusVisuals()
         {
-            if (_sprite == null)
+            if (_sprite == null && _animatedSprite == null)
             {
                 return;
             }
 
             if (_damageInvulnerabilityRemaining > 0.0f)
             {
-                _sprite.Modulate = new Color(1.0f, 0.55f, 0.55f, 1.0f);
+                Color color = new(1.0f, 0.55f, 0.55f, 1.0f);
+                ApplyVisualModulate(_sprite, color);
+                ApplyVisualModulate(_animatedSprite, color);
                 return;
             }
 
             if (HasSpeedBoost)
             {
-                _sprite.Modulate = new Color(0.7f, 1.0f, 0.8f, 1.0f);
+                Color color = new(0.7f, 1.0f, 0.8f, 1.0f);
+                ApplyVisualModulate(_sprite, color);
+                ApplyVisualModulate(_animatedSprite, color);
                 return;
             }
 
-            _sprite.Modulate = Colors.White;
+            ApplyVisualModulate(_sprite, Colors.White);
+            ApplyVisualModulate(_animatedSprite, Colors.White);
         }
 
         private float GetBaseMoveSpeed()
@@ -441,10 +485,12 @@ namespace Insanity.Scripts.Player
 
             if (_health <= 0)
             {
+                _animationController?.PlayOneShot(AnimationStates.Die);
                 Respawn();
             }
             else
             {
+                _animationController?.PlayOneShot(AnimationStates.Hit);
                 EmitStatsChanged();
             }
 
@@ -462,6 +508,7 @@ namespace Insanity.Scripts.Player
             _health = GameplayRules.ClampHealth(_health + amount, _maxHealth);
             if (_health != previousHealth)
             {
+                _animationController?.PlayOneShot(AnimationStates.Pickup);
                 EmitStatsChanged();
             }
         }
@@ -494,6 +541,7 @@ namespace Insanity.Scripts.Player
             _ammo = Mathf.Clamp(_ammo + amount, 0, _maxAmmo);
             if (_ammo != previousAmmo)
             {
+                _animationController?.PlayOneShot(AnimationStates.Pickup);
                 EmitStatsChanged();
             }
         }
@@ -506,6 +554,7 @@ namespace Insanity.Scripts.Player
             }
 
             _coins += amount;
+            _animationController?.PlayOneShot(AnimationStates.Pickup);
             EmitStatsChanged();
         }
 
@@ -523,6 +572,7 @@ namespace Insanity.Scripts.Player
             }
 
             _speedBoostRemaining = Mathf.Max(_speedBoostRemaining, durationSeconds);
+            _animationController?.PlayOneShot(AnimationStates.Pickup);
             EmitStatsChanged();
         }
 
@@ -542,6 +592,38 @@ namespace Insanity.Scripts.Player
         private void EmitStatsChanged()
         {
             // HUD polls every frame, but a single hook keeps state updates centralized.
+        }
+
+        private void SyncAnimationState()
+        {
+            if (_animationController == null)
+            {
+                return;
+            }
+
+            bool grounded = _wasGrounded;
+            bool dashing = grounded && !_isDucking && Input.IsActionPressed("sprint") && Mathf.Abs(Velocity.X) > 5.0f;
+            float facing = _direction.X == 0.0f ? FacingDirection : Mathf.Sign(_direction.X);
+            _animationController.UpdateFromGameplay(new ActorAnimationInput(
+                Velocity,
+                grounded,
+                _isDucking,
+                false,
+                false,
+                false,
+                _justLandedThisFrame,
+                dashing,
+                facing
+            ));
+            _justLandedThisFrame = false;
+        }
+
+        private static void ApplyVisualModulate(CanvasItem visual, Color color)
+        {
+            if (visual != null)
+            {
+                visual.Modulate = color;
+            }
         }
 
         public Godot.Collections.Dictionary<string, Variant> CaptureSaveState()

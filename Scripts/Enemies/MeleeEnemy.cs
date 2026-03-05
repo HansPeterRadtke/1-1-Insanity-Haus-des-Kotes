@@ -1,4 +1,5 @@
 using Godot;
+using Insanity.Scripts.Animation;
 using Insanity.Scripts.Shared;
 
 namespace Insanity.Scripts.Enemies
@@ -12,6 +13,8 @@ namespace Insanity.Scripts.Enemies
         [Export] private float _attackCooldown = 0.9f;
 
         private float _timeSinceAttack = 99.0f;
+        private bool _wasGrounded;
+        private bool _justLanded;
 
         public override void _PhysicsProcess(double delta)
         {
@@ -32,12 +35,13 @@ namespace Insanity.Scripts.Enemies
                 if (step.ShouldAttack)
                 {
                     _timeSinceAttack = 0.0f;
+                    AnimationController?.PlayOneShot(AnimationStates.AttackMelee);
                     player.ApplyDamage(8);
-                    Modulate = new Color(1.0f, 0.7f, 0.7f);
+                    UpdateVisualModulate(new Color(1.0f, 0.7f, 0.7f));
                 }
                 else
                 {
-                    Modulate = Colors.White;
+                    UpdateVisualModulate(Colors.White);
                 }
             }
             else
@@ -47,6 +51,24 @@ namespace Insanity.Scripts.Enemies
 
             Velocity = velocity;
             MoveAndSlide();
+
+            bool groundedNow = IsOnFloor();
+            _justLanded = !_wasGrounded && groundedNow;
+            _wasGrounded = groundedNow;
+
+            float facing = player != null && player.GlobalPosition.X < GlobalPosition.X ? -1.0f : 1.0f;
+            AnimationController?.UpdateFromGameplay(new ActorAnimationInput(
+                Velocity,
+                groundedNow,
+                false,
+                false,
+                false,
+                false,
+                _justLanded,
+                false,
+                facing
+            ));
+            _justLanded = false;
         }
     }
 }
