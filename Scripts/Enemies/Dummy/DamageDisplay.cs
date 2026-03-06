@@ -12,18 +12,13 @@ public partial class DamageDisplay : Node2D
 	public override void _Ready()
 	{
 		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
-		_label = GetNode<Label>("Label");
-
-		_label.Text = number + "";
+		_label           = GetNode<Label          >("Label"          );
+		_label.Text      = number + "";
 		
 		_animationPlayer.Play("display");
 	}
-
-
 	public void Delete()
 	{
 		QueueFree();
 	}
-
-	
 }

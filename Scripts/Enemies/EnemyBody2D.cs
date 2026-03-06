@@ -6,8 +6,8 @@ namespace Insanity.Scripts.Enemies
 	[GlobalClass]
 	public partial class EnemyBody2D : CharacterBody2D
     {
-    	[Export] public int Health = 100;
-	    [Export] public int MaxHealth = 100;
+    	[Export] public int  Health       = 100 ;
+	    [Export] public int  MaxHealth    = 100 ;
     	[Export] public bool IsVulnerable = true;
     
     	public virtual void Hurt(int damage)
@@ -20,7 +20,7 @@ namespace Insanity.Scripts.Enemies
 	    public virtual void Heal(int amount)
 	    {
 		    Health += amount;
-		    Health = Math.Clamp(Health, 0, MaxHealth);
+		    Health  = Math.Clamp(Health, 0, MaxHealth);
 	    }
 	    
 	    

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://ch6ptymavvs0k" path="res://Scripts/Player/Player.cs" id="1_cvnsp"]
 [ext_resource type="Texture2D" uid="uid://37n2k3a7u5ys" path="res://Assets/placeholder/plr.png" id="2_cvnsp"]
 [ext_resource type="Script" uid="uid://ihsxhpss0hgh" path="res://Scripts/Player/Attacks.cs" id="3_xpcdj"]
+[ext_resource type="Texture2D" uid="uid://dg28tjhi4lxir" path="res://Assets/placeholder/plr_kick.png" id="4_htcer"]
 [ext_resource type="PackedScene" uid="uid://c0npocj5xikb1" path="res://Scenes/Player/Attacks/blue_ball.tscn" id="4_mtuoh"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
@@ -19,6 +20,8 @@ texture = ExtResource("2_cvnsp")
 
 [node name="Attacks" type="Marker2D" parent="." unique_id=1032950281]
 script = ExtResource("3_xpcdj")
+_texIdle = ExtResource("2_cvnsp")
+_texKick = ExtResource("4_htcer")
 _blueBallPrefab = ExtResource("4_mtuoh")
 
 [node name="KickRaycast" type="RayCast2D" parent="Attacks" unique_id=1655514178]

@@ -9,10 +9,11 @@ namespace Insanity.Scripts.Enemies.Dummy
 
         public override void Hurt(int damage)
         {
+            base.Hurt(damage);
             if (_damageDisplay != null)
             {
                 var displayInstance = _damageDisplay.Instantiate<DamageDisplay>();
-                displayInstance.number = damage;
+                displayInstance.number   = damage      ;
                 displayInstance.Position = Vector2.Zero;
                 AddChild(displayInstance);
             }
