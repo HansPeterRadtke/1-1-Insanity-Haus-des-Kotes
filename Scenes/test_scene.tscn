@@ -23,5 +23,5 @@ position_smoothing_speed = 10.0
 
 [node name="HUD" parent="CanvasLayer" unique_id=598983789 instance=ExtResource("3_50ct6")]
 
-[node name="CharacterBody2D" parent="." unique_id=1161018026 instance=ExtResource("4_hb2xm")]
+[node name="Dummy" parent="." unique_id=1161018026 instance=ExtResource("4_hb2xm")]
 position = Vector2(350, -32)

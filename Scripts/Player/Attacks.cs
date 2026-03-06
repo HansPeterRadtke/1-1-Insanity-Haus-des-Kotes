@@ -50,12 +50,7 @@ namespace Insanity.Scripts.Player
 
 		private void _Kick()
 		{
-			var body = _kickRaycast.GetCollider() as EnemyBody2D;
-
-			if (body is null)
-			{
-				return;
-			}
+			if (_kickRaycast.GetCollider() is not EnemyBody2D body) return;
 			
 			body.Hurt(KickDamage);
 		}
@@ -63,16 +58,16 @@ namespace Insanity.Scripts.Player
 		private void _spawnBall()
 		{
 			_timeSinceBall = 0.0f;
-			var instance = _blueBallPrefab.Instantiate();
-
-			if (instance is BlueBall blueBall)
-			{
-				blueBall.Rotation = Rotation + float.DegreesToRadians((float)GD.RandRange(-BlueBallAngle, BlueBallAngle));
-				blueBall.GlobalPosition = GlobalPosition;
-				GetTree().Root.AddChild(blueBall);
-			}
-
 			
+			var instance = _blueBallPrefab.Instantiate();
+			if (instance is not BlueBall blueBall) return;
+			
+			float randomAngle = (float) GD.RandRange(-BlueBallAngle, BlueBallAngle);
+			blueBall.Rotation = Rotation + float.DegreesToRadians(randomAngle);
+				
+			blueBall.GlobalPosition = GlobalPosition;
+				
+			GetTree().Root.AddChild(blueBall);
 		}
 		
 		private bool _canSpawnBall() => _timeSinceBall > BlueBallRate;

@@ -29,16 +29,11 @@ public partial class BlueBall : Area2D
 
 	private void _OnHitEnemy(Node2D collider)
 	{
-		var body = collider as EnemyBody2D;
-
-		if (body is null)
-		{
-			return;
-		}
-
-		int damage = GD.RandRange(_damageMin, _damageMax);
+		if (collider is not EnemyBody2D body) return;
 		
+		int damage = GD.RandRange(_damageMin, _damageMax);
 		body.Hurt(damage);
+		
 		QueueFree();
 	}
 }
